@@ -6,6 +6,8 @@ import { z } from "zod";
 const OrderItemSchema = z.object({
   productId: z.string(),
   productName: z.string(),
+  productImage: z.string().optional(),
+  isSet: z.boolean().optional(),
   quantity: z.number().int().positive(),
   price: z.number().positive(),
   color: z.string().optional(),
@@ -15,6 +17,7 @@ const OrderItemSchema = z.object({
 const CreateOrderSchema = z.object({
   name: z.string().min(2).max(100),
   phone: z.string().min(10).max(20),
+  messenger: z.string().max(50).optional(),
   address: z.string().min(5).max(500),
   comment: z.string().max(1000).optional(),
   items: z.array(OrderItemSchema).min(1),
@@ -31,13 +34,14 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const { name, phone, address, comment, items } = result.data;
+  const { name, phone, messenger, address, comment, items } = result.data;
   const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   const order = await prisma.order.create({
     data: {
       name,
       phone,
+      messenger,
       address,
       comment,
       total,
@@ -50,10 +54,11 @@ export async function POST(request: NextRequest) {
     id: order.id,
     name: order.name,
     phone: order.phone,
+    messenger: order.messenger,
     address: order.address,
     comment: order.comment,
     total: order.total,
-    items: items,
+    items,
     createdAt: order.createdAt,
   }).catch(console.error);
 

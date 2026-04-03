@@ -15,7 +15,6 @@ const EMPTY: Partial<Product> = {
   name: "",
   description: "",
   category: "valtrap",
-  valtrapType: "konkur",
   price: 0,
   images: [],
   colors: [],
@@ -25,12 +24,64 @@ const EMPTY: Partial<Product> = {
   isSet: false,
 };
 
+const SIZE_OPTIONS = {
+  ushki: [
+    { value: "cob", label: "Коб" },
+    { value: "full", label: "Фул" },
+  ],
+  valtrap: [
+    { value: "konkur", label: "Конкур" },
+    { value: "vyezdka", label: "Выездка" },
+    { value: "universalny", label: "Универсал" },
+  ],
+};
+
+function SizeGroup({
+  title,
+  options,
+  selected,
+  onChange,
+}: {
+  title: string;
+  options: { value: string; label: string }[];
+  selected: string[];
+  onChange: (value: string) => void;
+}) {
+  return (
+    <div>
+      <p className="text-sm font-semibold text-stone-600 mb-2">{title}</p>
+      <div className="flex flex-wrap gap-3">
+        {options.map(({ value, label }) => (
+          <label key={value} className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={selected.includes(value)}
+              onChange={() => onChange(value)}
+              className="w-4 h-4 rounded border-stone-300 text-stone-800"
+            />
+            <span className="text-sm font-medium text-stone-700">{label}</span>
+          </label>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function ProductForm({ product }: ProductFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState<Partial<Product>>(product ?? EMPTY);
   const [colorsInput, setColorsInput] = useState((product?.colors ?? []).join(", "));
-  const [sizesInput, setSizesInput] = useState((product?.sizes ?? []).join(", "));
+
+  const toggleSize = (value: string) => {
+    setForm((p) => {
+      const sizes = p.sizes ?? [];
+      return {
+        ...p,
+        sizes: sizes.includes(value) ? sizes.filter((s) => s !== value) : [...sizes, value],
+      };
+    });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,9 +91,9 @@ export default function ProductForm({ product }: ProductFormProps) {
         ...form,
         price: Number(form.price),
         colors: colorsInput.split(",").map((s) => s.trim()).filter(Boolean),
-        sizes: sizesInput.split(",").map((s) => s.trim()).filter(Boolean),
+        sizes: form.sizes ?? [],
         images: form.images ?? [],
-        valtrapType: form.category === "valtrap" ? form.valtrapType : null,
+        valtrapType: null,
       };
 
       const url = product ? `/api/admin/products/${product.id}` : "/api/admin/products";
@@ -65,8 +116,11 @@ export default function ProductForm({ product }: ProductFormProps) {
     }
   };
 
-  const fieldClass = "w-full rounded-xl border border-stone-200 px-4 py-2.5 text-sm text-stone-900 focus:outline-none focus:ring-2 focus:ring-stone-300 transition-all";
+  const fieldClass =
+    "w-full rounded-xl border border-stone-200 px-4 py-2.5 text-sm text-stone-900 " +
+    "focus:outline-none focus:ring-2 focus:ring-stone-300 transition-all";
   const labelClass = "block text-sm font-semibold text-stone-700 mb-1.5";
+  const sizes = form.sizes ?? [];
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5 max-w-2xl">
@@ -97,42 +151,18 @@ export default function ProductForm({ product }: ProductFormProps) {
           <label className={labelClass}>Категория *</label>
           <select
             value={form.category}
-            onChange={(e) => setForm((p) => ({ ...p, category: e.target.value as "valtrap" | "ushki" }))}
+            onChange={(e) =>
+              setForm((p) => ({
+                ...p,
+                category: e.target.value as "valtrap" | "ushki",
+                sizes: [],
+              }))
+            }
             className={fieldClass}
           >
             <option value="valtrap">Вальтрап</option>
             <option value="ushki">Ушки</option>
           </select>
-        </div>
-
-        {form.category === "valtrap" && (
-          <div>
-            <label className={labelClass}>Тип вальтрапа</label>
-            <select
-              value={form.valtrapType ?? "konkur"}
-              onChange={(e) => setForm((p) => ({ ...p, valtrapType: e.target.value as Product["valtrapType"] }))}
-              className={fieldClass}
-            >
-              <option value="konkur">Конкур</option>
-              <option value="vyezdka">Выездка</option>
-              <option value="universalny">Универсальный</option>
-              <option value="pony">Пони</option>
-            </select>
-          </div>
-        )}
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className={labelClass}>Цена (₽) *</label>
-          <input
-            type="number"
-            required
-            min={1}
-            value={form.price ?? 0}
-            onChange={(e) => setForm((p) => ({ ...p, price: Number(e.target.value) }))}
-            className={fieldClass}
-          />
         </div>
 
         <div>
@@ -147,6 +177,18 @@ export default function ProductForm({ product }: ProductFormProps) {
       </div>
 
       <div>
+        <label className={labelClass}>Цена (₽) *</label>
+        <input
+          type="number"
+          required
+          min={1}
+          value={form.price ?? 0}
+          onChange={(e) => setForm((p) => ({ ...p, price: Number(e.target.value) }))}
+          className={fieldClass}
+        />
+      </div>
+
+      <div>
         <label className={labelClass}>Цвета (через запятую)</label>
         <input
           value={colorsInput}
@@ -156,14 +198,35 @@ export default function ProductForm({ product }: ProductFormProps) {
         />
       </div>
 
-      <div>
-        <label className={labelClass}>Размеры (через запятую)</label>
-        <input
-          value={sizesInput}
-          onChange={(e) => setSizesInput(e.target.value)}
-          className={fieldClass}
-          placeholder="cob, full, pony"
-        />
+      {/* Размеры — всегда показываем */}
+      <div className="rounded-xl border border-stone-200 p-4 space-y-4">
+        <p className={labelClass + " mb-0"}>Размеры</p>
+
+        {!form.isSet ? (
+          /* Не комплект: только своя категория */
+          <SizeGroup
+            title={form.category === "ushki" ? "Ушки" : "Вальтрап"}
+            options={form.category === "ushki" ? SIZE_OPTIONS.ushki : SIZE_OPTIONS.valtrap}
+            selected={sizes}
+            onChange={toggleSize}
+          />
+        ) : (
+          /* Комплект: обе категории */
+          <>
+            <SizeGroup
+              title="Ушки"
+              options={SIZE_OPTIONS.ushki}
+              selected={sizes}
+              onChange={toggleSize}
+            />
+            <SizeGroup
+              title="Вальтрап"
+              options={SIZE_OPTIONS.valtrap}
+              selected={sizes}
+              onChange={toggleSize}
+            />
+          </>
+        )}
       </div>
 
       <div>
@@ -189,7 +252,9 @@ export default function ProductForm({ product }: ProductFormProps) {
           <input
             type="checkbox"
             checked={form.isSet ?? false}
-            onChange={(e) => setForm((p) => ({ ...p, isSet: e.target.checked }))}
+            onChange={(e) =>
+              setForm((p) => ({ ...p, isSet: e.target.checked, sizes: [] }))
+            }
             className="w-4 h-4 rounded border-stone-300 text-stone-800"
           />
           <span className="text-sm font-medium text-stone-700">Продаётся комплектом</span>

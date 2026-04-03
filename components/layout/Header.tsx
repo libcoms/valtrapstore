@@ -10,6 +10,11 @@ export default function Header() {
   const totalItems = useCartStore((s) => s.getTotalItems());
   const [mobileOpen, setMobileOpen] = useState(false);
   const [cartBump, setCartBump] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (totalItems === 0) return;
@@ -24,40 +29,23 @@ export default function Header() {
         <div className="flex items-center justify-between h-16">
 
           {/* Логотип + название */}
-          <Link href="/" className="flex items-center gap-2.5 group">
+          <Link href="/" className="flex items-center gap-3 group">
             <div className="relative w-9 h-9 rounded-xl overflow-hidden flex-shrink-0 transition-transform duration-300 md:group-hover:scale-105">
               <Image
                 src="/logo.png"
-                alt="Valtrapru.store"
+                alt="ВальтрапРу"
                 fill
                 className="object-cover"
                 sizes="36px"
               />
             </div>
-            <span className="text-lg font-bold text-stone-800 tracking-tight leading-none">
-              Valtrapru<span className="text-amber-600">.store</span>
-            </span>
+            <div className="leading-none">
+              <p className="text-base font-bold text-stone-800 tracking-tight">
+                Вальтрап<span className="text-amber-600">Ру</span>
+              </p>
+              <p className="text-xs text-stone-400 font-medium mt-0.5">магазин вальтрапов</p>
+            </div>
           </Link>
-
-          {/* Навигация */}
-          <nav className="hidden md:flex items-center gap-8">
-            {[
-              { href: "/", label: "Каталог" },
-              { href: "/?category=valtrap", label: "Вальтрапы" },
-              { href: "/?category=ushki", label: "Ушки" },
-            ].map(({ href, label }) => (
-              <Link
-                key={href}
-                href={href}
-                className="relative text-stone-600 hover:text-stone-900 transition-colors text-sm font-medium
-                           after:absolute after:-bottom-0.5 after:left-0 after:w-0 after:h-0.5
-                           after:bg-amber-500 after:transition-all after:duration-300
-                           hover:after:w-full"
-              >
-                {label}
-              </Link>
-            ))}
-          </nav>
 
           {/* Правая часть */}
           <div className="flex items-center gap-2">
@@ -66,7 +54,7 @@ export default function Header() {
               className="relative p-2 text-stone-700 hover:text-stone-900 transition-colors rounded-xl hover:bg-stone-50"
             >
               <ShoppingBag className={`w-5 h-5 transition-transform duration-300 ${cartBump ? "md:scale-125" : "scale-100"}`} />
-              {totalItems > 0 && (
+              {mounted && totalItems > 0 && (
                 <span className={`absolute -top-0.5 -right-0.5 bg-amber-500 text-white text-xs font-bold w-4 h-4 rounded-full flex items-center justify-center leading-none transition-transform duration-300 ${cartBump ? "md:scale-125" : "scale-100"}`}>
                   {totalItems > 9 ? "9+" : totalItems}
                 </span>
@@ -78,30 +66,28 @@ export default function Header() {
               onClick={() => setMobileOpen(!mobileOpen)}
               aria-label="Меню"
             >
-              <span className={`block transition-all duration-200 ${mobileOpen ? "rotate-90 opacity-0 absolute" : "rotate-0 opacity-100"}`}>
-                {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-              </span>
+              {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
         </div>
 
         {/* Мобильное меню */}
-        <div className={`md:hidden overflow-hidden transition-all duration-300 ease-in-out ${mobileOpen ? "max-h-48 opacity-100" : "max-h-0 opacity-0"}`}>
+        <div className={`md:hidden overflow-hidden transition-all duration-300 ease-in-out ${mobileOpen ? "max-h-24 opacity-100" : "max-h-0 opacity-0"}`}>
           <nav className="py-3 border-t border-stone-100 flex flex-col gap-1">
-            {[
-              { href: "/", label: "Весь каталог" },
-              { href: "/?category=valtrap", label: "Вальтрапы" },
-              { href: "/?category=ushki", label: "Ушки" },
-            ].map(({ href, label }) => (
-              <Link
-                key={href}
-                href={href}
-                onClick={() => setMobileOpen(false)}
-                className="px-2 py-2 text-stone-700 hover:text-stone-900 text-sm font-medium rounded-xl hover:bg-stone-50 transition-colors"
-              >
-                {label}
-              </Link>
-            ))}
+            <Link
+              href="/"
+              onClick={() => setMobileOpen(false)}
+              className="px-2 py-2 text-stone-700 hover:text-stone-900 text-sm font-medium rounded-xl hover:bg-stone-50 transition-colors"
+            >
+              Каталог
+            </Link>
+            <Link
+              href="/cart"
+              onClick={() => setMobileOpen(false)}
+              className="px-2 py-2 text-stone-700 hover:text-stone-900 text-sm font-medium rounded-xl hover:bg-stone-50 transition-colors"
+            >
+              Корзина
+            </Link>
           </nav>
         </div>
       </div>

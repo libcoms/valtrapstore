@@ -7,10 +7,19 @@ import { formatPrice } from "@/lib/utils";
 import Button from "@/components/ui/Button";
 import Link from "next/link";
 import toast from "react-hot-toast";
+import { ExternalLink } from "lucide-react";
+
+const MESSENGERS = [
+  { value: "WhatsApp", label: "WhatsApp" },
+  { value: "Telegram", label: "Telegram" },
+  { value: "Viber", label: "Viber" },
+  { value: "Звонок", label: "Телефонный звонок" },
+];
 
 interface FormData {
   name: string;
   phone: string;
+  messenger: string;
   address: string;
   comment: string;
   privacy: boolean;
@@ -19,6 +28,7 @@ interface FormData {
 interface FormErrors {
   name?: string;
   phone?: string;
+  messenger?: string;
   address?: string;
   privacy?: string;
 }
@@ -35,7 +45,8 @@ function validate(data: FormData): FormErrors {
   const errors: FormErrors = {};
   if (!data.name.trim() || data.name.trim().length < 2) errors.name = "Введите ваше имя";
   if (!validateRuPhone(data.phone)) errors.phone = "Введите номер телефона РФ (+7 или 8 и 10 цифр)";
-  if (!data.address.trim() || data.address.trim().length < 5) errors.address = "Введите адрес доставки";
+  if (!data.messenger) errors.messenger = "Выберите мессенджер";
+  if (!data.address.trim() || data.address.trim().length < 5) errors.address = "Укажите адрес пункта выдачи";
   if (!data.privacy) errors.privacy = "Необходимо согласие с политикой конфиденциальности";
   return errors;
 }
@@ -48,6 +59,7 @@ export default function CheckoutPage() {
   const [form, setForm] = useState<FormData>({
     name: "",
     phone: "",
+    messenger: "",
     address: "",
     comment: "",
     privacy: false,
@@ -64,7 +76,7 @@ export default function CheckoutPage() {
     );
   }
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
     setForm((prev) => ({
       ...prev,
@@ -91,11 +103,13 @@ export default function CheckoutPage() {
         body: JSON.stringify({
           name: form.name,
           phone: form.phone,
+          messenger: form.messenger,
           address: form.address,
           comment: form.comment || undefined,
           items: items.map((i) => ({
             productId: i.productId,
             productName: i.productName,
+            productImage: i.productImage,
             quantity: i.quantity,
             price: i.price,
             color: i.color,
@@ -115,61 +129,89 @@ export default function CheckoutPage() {
     }
   };
 
+  const inputCls = (hasError: boolean) =>
+    `w-full rounded-xl border px-4 py-3 text-sm text-stone-900 placeholder-stone-300
+     focus:outline-none focus:ring-2 focus:ring-stone-300 transition-all
+     ${hasError ? "border-red-400" : "border-stone-200"}`;
+
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <h1 className="text-2xl font-bold text-stone-900 mb-8">Оформление заказа</h1>
 
       <div className="lg:grid lg:grid-cols-[1fr_340px] lg:gap-10">
         <form onSubmit={handleSubmit} className="space-y-5 mb-8 lg:mb-0">
+
+          {/* Имя */}
           <div>
-            <label className="block text-sm font-semibold text-stone-700 mb-1.5">
-              Ваше имя *
-            </label>
+            <label className="block text-sm font-semibold text-stone-700 mb-1.5">Ваше имя *</label>
             <input
               name="name"
               value={form.name}
               onChange={handleChange}
               placeholder="Иван Иванов"
-              className={`w-full rounded-xl border px-4 py-3 text-sm text-stone-900 placeholder-stone-300 focus:outline-none focus:ring-2 focus:ring-stone-300 transition-all ${
-                errors.name ? "border-red-400" : "border-stone-200"
-              }`}
+              className={inputCls(!!errors.name)}
             />
             {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
           </div>
 
+          {/* Телефон */}
           <div>
-            <label className="block text-sm font-semibold text-stone-700 mb-1.5">
-              Телефон *
-            </label>
+            <label className="block text-sm font-semibold text-stone-700 mb-1.5">Телефон *</label>
             <input
               name="phone"
               value={form.phone}
               onChange={handleChange}
               placeholder="+7 (999) 000-00-00"
               type="tel"
-              className={`w-full rounded-xl border px-4 py-3 text-sm text-stone-900 placeholder-stone-300 focus:outline-none focus:ring-2 focus:ring-stone-300 transition-all ${
-                errors.phone ? "border-red-400" : "border-stone-200"
-              }`}
+              className={inputCls(!!errors.phone)}
             />
             {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone}</p>}
           </div>
 
+          {/* Мессенджер */}
           <div>
             <label className="block text-sm font-semibold text-stone-700 mb-1.5">
-              Адрес доставки *
+              Мессенджер для связи *
+            </label>
+            <select
+              name="messenger"
+              value={form.messenger}
+              onChange={handleChange}
+              className={inputCls(!!errors.messenger)}
+            >
+              <option value="">Выберите мессенджер</option>
+              {MESSENGERS.map((m) => (
+                <option key={m.value} value={m.value}>{m.label}</option>
+              ))}
+            </select>
+            {errors.messenger && <p className="text-red-500 text-xs mt-1">{errors.messenger}</p>}
+          </div>
+
+          {/* Пункт выдачи */}
+          <div>
+            <label className="block text-sm font-semibold text-stone-700 mb-1.5">
+              Адрес пункта выдачи Яндекс Маркета *
             </label>
             <input
               name="address"
               value={form.address}
               onChange={handleChange}
-              placeholder="Город, улица, дом, квартира"
-              className={`w-full rounded-xl border px-4 py-3 text-sm text-stone-900 placeholder-stone-300 focus:outline-none focus:ring-2 focus:ring-stone-300 transition-all ${
-                errors.address ? "border-red-400" : "border-stone-200"
-              }`}
+              placeholder="Например: ул. Ленина, 10, ПВЗ Яндекс Маркет"
+              className={inputCls(!!errors.address)}
             />
             {errors.address && <p className="text-red-500 text-xs mt-1">{errors.address}</p>}
+            <a
+              href="https://market.yandex.ru/geo"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-xs text-amber-600 hover:text-amber-700 transition-colors mt-1.5"
+            >
+              <ExternalLink className="w-3 h-3" />
+              Найти ближайший пункт выдачи на Яндекс Маркете
+            </a>
           </div>
 
+          {/* Комментарий */}
           <div>
             <label className="block text-sm font-semibold text-stone-700 mb-1.5">
               Комментарий к заказу
@@ -178,12 +220,13 @@ export default function CheckoutPage() {
               name="comment"
               value={form.comment}
               onChange={handleChange}
-              placeholder="Пожелания по цвету, размеру или доставке..."
+              placeholder="Пожелания по цвету, размеру..."
               rows={3}
               className="w-full rounded-xl border border-stone-200 px-4 py-3 text-sm text-stone-900 placeholder-stone-300 focus:outline-none focus:ring-2 focus:ring-stone-300 transition-all resize-none"
             />
           </div>
 
+          {/* Согласие */}
           <div>
             <label className="flex items-start gap-3 cursor-pointer">
               <input
@@ -208,10 +251,11 @@ export default function CheckoutPage() {
           </Button>
 
           <p className="text-xs text-stone-400 text-center">
-            После отправки заявки с вами свяжется менеджер для подтверждения и оплаты
+            После отправки заявки с вами свяжется менеджер для подтверждения
           </p>
         </form>
 
+        {/* Итого */}
         <div className="lg:sticky lg:top-24">
           <div className="bg-white rounded-2xl border border-stone-100 p-6 shadow-sm">
             <h2 className="text-base font-bold text-stone-900 mb-4">Ваш заказ</h2>
@@ -225,7 +269,7 @@ export default function CheckoutPage() {
                         {item.productName}
                       </p>
                       <p className="text-xs text-stone-400">
-                        {[item.color, item.size?.toUpperCase()].filter(Boolean).join(" / ")} × {item.quantity}
+                        {[item.color, item.size].filter(Boolean).join(" / ")} × {item.quantity}
                       </p>
                     </div>
                     <span className="text-sm font-semibold text-stone-800 flex-shrink-0">

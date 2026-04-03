@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState, useCallback } from "react";
-import { formatPrice, CATEGORY_LABELS, VALTRAP_TYPE_LABELS } from "@/lib/utils";
+import { formatPrice, CATEGORY_LABELS, VALTRAP_TYPE_LABELS, SIZE_LABELS } from "@/lib/utils";
 import type { Product } from "@/types";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
@@ -143,6 +143,48 @@ export default function ProductCard({ product }: ProductCardProps) {
                          transition-colors duration-200 md:group-hover:text-stone-900">
             {product.name}
           </h3>
+
+          {product.sizes.length > 0 && (() => {
+            const ushkiSizes = product.sizes.filter((s) => ["cob", "full"].includes(s));
+            const valtrapSizes = product.sizes.filter((s) => ["konkur", "vyezdka", "universalny"].includes(s));
+            const showBoth = product.isSet && ushkiSizes.length > 0 && valtrapSizes.length > 0;
+
+            return (
+              <div className="space-y-1 mb-2">
+                {showBoth ? (
+                  <>
+                    <div className="flex gap-1 flex-wrap items-center">
+                      <span className="text-xs text-stone-400">Ушки:</span>
+                      {ushkiSizes.map((s) => (
+                        <span key={s} className="text-xs text-stone-600 font-medium bg-stone-100 rounded-full px-2 py-0.5 transition-colors duration-200 md:group-hover:bg-stone-200">
+                          {SIZE_LABELS[s] ?? s}
+                        </span>
+                      ))}
+                    </div>
+                    <div className="flex gap-1 flex-wrap items-center">
+                      <span className="text-xs text-stone-400">Вальтрап:</span>
+                      {valtrapSizes.map((s) => (
+                        <span key={s} className="text-xs text-stone-600 font-medium bg-stone-100 rounded-full px-2 py-0.5 transition-colors duration-200 md:group-hover:bg-stone-200">
+                          {SIZE_LABELS[s] ?? s}
+                        </span>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex gap-1 flex-wrap items-center">
+                    <span className="text-xs text-stone-400">
+                      {product.category === "ushki" ? "Размер:" : "Размер:"}
+                    </span>
+                    {product.sizes.map((s) => (
+                      <span key={s} className="text-xs text-stone-600 font-medium bg-stone-100 rounded-full px-2 py-0.5 transition-colors duration-200 md:group-hover:bg-stone-200">
+                        {SIZE_LABELS[s] ?? s}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
 
           {product.colors.length > 0 && (
             <div className="flex gap-1 flex-wrap mb-3">

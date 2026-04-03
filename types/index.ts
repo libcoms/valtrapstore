@@ -33,6 +33,8 @@ export interface CartItem {
 export interface OrderItem {
   productId: string;
   productName: string;
+  productImage?: string;
+  isSet?: boolean;
   quantity: number;
   price: number;
   color?: string;

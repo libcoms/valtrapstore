@@ -61,16 +61,28 @@ model Product {
 }
 
 model Order {
-  id        String      @id @default(cuid())
-  status    OrderStatus @default(new)
-  total     Int
-  name      String
-  phone     String
-  address   String
-  comment   String?
-  items     Json
-  userId    String?
-  user      User?       @relation(fields: [userId], references: [id])
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
+  id            String      @id @default(cuid())
+  status        OrderStatus @default(new)
+  total         Int
+  name          String
+  phone         String
+  messenger     String?
+  address       String
+  comment       String?
+  items         Json
+  userId        String?
+  user          User?       @relation(fields: [userId], references: [id])
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model BannerSlide {
+  id        String   @id @default(cuid())
+  imageUrl  String
+  linkUrl   String?
+  title     String?
+  subtitle  String?
+  sortOrder Int      @default(0)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
 }

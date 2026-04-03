@@ -28,6 +28,14 @@ export const VALTRAP_TYPE_LABELS: Record<string, string> = {
   pony: "Пони",
 };
 
+export const SIZE_LABELS: Record<string, string> = {
+  cob: "Коб",
+  full: "Фул",
+  konkur: "Конкур",
+  vyezdka: "Выездка",
+  universalny: "Универсал",
+};
+
 export const ORDER_STATUS_LABELS: Record<string, string> = {
   new: "Новый",
   accepted: "Принят",

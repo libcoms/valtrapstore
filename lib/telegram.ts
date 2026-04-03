@@ -11,6 +11,7 @@ interface OrderData {
   id: string;
   name: string;
   phone: string;
+  messenger?: string | null;
   address: string;
   comment?: string | null;
   total: number;
@@ -28,19 +29,25 @@ export async function sendOrderToTelegram(order: OrderData): Promise<void> {
   }
 
   const itemsList = order.items
-    .map(
-      (item) =>
-        `• ${item.productName}${item.color ? ` (${item.color})` : ""}${item.size ? ` / ${item.size}` : ""} × ${item.quantity} — ${(item.price * item.quantity).toLocaleString("ru-RU")} ₽`
-    )
+    .map((item) => {
+      const isSet = !!item.size && item.size.includes(" / ");
+      let sizeStr = "";
+      if (isSet) {
+        sizeStr = ` [Комплект: ${item.size}]`;
+      } else if (item.size) {
+        sizeStr = ` / ${item.size}`;
+      }
+      return `• ${item.productName}${item.color ? ` (${item.color})` : ""}${sizeStr} × ${item.quantity} — ${(item.price * item.quantity).toLocaleString("ru-RU")} ₽`;
+    })
     .join("\n");
 
   const message = `
 🛍 *Новый заказ #${order.id.slice(-8).toUpperCase()}*
 
 👤 *Клиент:* ${order.name}
-📞 *Телефон:* ${order.phone}
-📍 *Адрес:* ${order.address}
-${order.comment ? `💬 *Комментарий:* ${order.comment}\n` : ""}
+📞 *Телефон:* ${order.phone}${order.messenger ? `\n💬 *Мессенджер:* ${order.messenger}` : ""}
+📍 *Адрес ПВЗ:* ${order.address}
+${order.comment ? `📝 *Комментарий:* ${order.comment}\n` : ""}
 🛒 *Состав заказа:*
 ${itemsList}
 
