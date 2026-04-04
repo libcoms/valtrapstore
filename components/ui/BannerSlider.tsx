@@ -16,6 +16,7 @@ interface Slide {
 export default function BannerSlider({ slides }: { slides: Slide[] }) {
   const [current, setCurrent] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const touchStartX = useRef<number | null>(null);
 
   const startTimer = useCallback(() => {
     if (slides.length <= 1) return;
@@ -34,7 +35,7 @@ export default function BannerSlider({ slides }: { slides: Slide[] }) {
 
   const goTo = (index: number) => {
     setCurrent(index);
-    startTimer(); // сбросить таймер при ручном переключении
+    startTimer();
   };
 
   const prev = (e: React.MouseEvent) => {
@@ -49,12 +50,30 @@ export default function BannerSlider({ slides }: { slides: Slide[] }) {
     goTo((current + 1) % slides.length);
   };
 
+  const onTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const onTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current === null) return;
+    const dx = e.changedTouches[0].clientX - touchStartX.current;
+    if (Math.abs(dx) > 40) {
+      goTo(dx < 0
+        ? (current + 1) % slides.length
+        : (current - 1 + slides.length) % slides.length
+      );
+    }
+    touchStartX.current = null;
+  };
+
   if (slides.length === 0) return null;
 
   return (
     <div
       className="relative w-full overflow-hidden rounded-2xl bg-stone-200"
       style={{ aspectRatio: "3/1" }}
+      onTouchStart={onTouchStart}
+      onTouchEnd={onTouchEnd}
     >
       {slides.map((slide, i) => {
         const content = (
@@ -106,13 +125,13 @@ export default function BannerSlider({ slides }: { slides: Slide[] }) {
         );
       })}
 
-      {/* Стрелки */}
       {slides.length > 1 && (
         <>
+          {/* Стрелки — только на десктопе */}
           <button
             onClick={prev}
-            className="absolute left-3 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full
-                       bg-black/30 hover:bg-black/50 text-white flex items-center justify-center
+            className="hidden md:flex absolute left-3 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full
+                       bg-black/30 hover:bg-black/50 text-white items-center justify-center
                        transition-colors backdrop-blur-sm"
             aria-label="Предыдущий"
           >
@@ -120,8 +139,8 @@ export default function BannerSlider({ slides }: { slides: Slide[] }) {
           </button>
           <button
             onClick={next}
-            className="absolute right-3 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full
-                       bg-black/30 hover:bg-black/50 text-white flex items-center justify-center
+            className="hidden md:flex absolute right-3 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full
+                       bg-black/30 hover:bg-black/50 text-white items-center justify-center
                        transition-colors backdrop-blur-sm"
             aria-label="Следующий"
           >

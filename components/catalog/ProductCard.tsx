@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { formatPrice, CATEGORY_LABELS, VALTRAP_TYPE_LABELS, SIZE_LABELS } from "@/lib/utils";
 import type { Product } from "@/types";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -14,6 +14,7 @@ interface ProductCardProps {
 export default function ProductCard({ product }: ProductCardProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
+  const touchStartX = useRef<number | null>(null);
 
   const label =
     product.category === "valtrap" && product.valtrapType
@@ -41,6 +42,23 @@ export default function ProductCard({ product }: ProductCardProps) {
     setCurrentIndex(index);
   }, []);
 
+  const onTouchStart = useCallback((e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  }, []);
+
+  const onTouchEnd = useCallback((e: React.TouchEvent) => {
+    if (touchStartX.current === null || images.length < 2) return;
+    const dx = e.changedTouches[0].clientX - touchStartX.current;
+    if (Math.abs(dx) > 40) {
+      e.preventDefault();
+      setCurrentIndex((i) => dx < 0
+        ? (i + 1) % images.length
+        : (i - 1 + images.length) % images.length
+      );
+    }
+    touchStartX.current = null;
+  }, [images.length]);
+
   return (
     <Link
       href={`/product/${product.id}`}
@@ -51,7 +69,11 @@ export default function ProductCard({ product }: ProductCardProps) {
       <div className="h-full rounded-2xl overflow-hidden bg-stone-50 border border-stone-100
                       transition-all duration-300 ease-out
                       md:hover:shadow-xl md:hover:-translate-y-1 md:hover:border-stone-200">
-        <div className="relative aspect-square bg-stone-100 overflow-hidden">
+        <div
+          className="relative aspect-square bg-stone-100 overflow-hidden"
+          onTouchStart={onTouchStart}
+          onTouchEnd={onTouchEnd}
+        >
           {images.length > 0 ? (
             <>
               {images.map((src, i) => (
@@ -72,9 +94,9 @@ export default function ProductCard({ product }: ProductCardProps) {
                 <>
                   <button
                     onClick={prev}
-                    className="absolute left-1.5 top-1/2 -translate-y-1/2 z-10
+                    className="hidden md:flex absolute left-1.5 top-1/2 -translate-y-1/2 z-10
                                w-7 h-7 rounded-full bg-white/80 backdrop-blur-sm shadow
-                               flex items-center justify-center text-stone-700
+                               items-center justify-center text-stone-700
                                hover:bg-white transition-all duration-150
                                opacity-0 md:group-hover:opacity-100"
                     aria-label="Предыдущее фото"
@@ -83,9 +105,9 @@ export default function ProductCard({ product }: ProductCardProps) {
                   </button>
                   <button
                     onClick={next}
-                    className="absolute right-1.5 top-1/2 -translate-y-1/2 z-10
+                    className="hidden md:flex absolute right-1.5 top-1/2 -translate-y-1/2 z-10
                                w-7 h-7 rounded-full bg-white/80 backdrop-blur-sm shadow
-                               flex items-center justify-center text-stone-700
+                               items-center justify-center text-stone-700
                                hover:bg-white transition-all duration-150
                                opacity-0 md:group-hover:opacity-100"
                     aria-label="Следующее фото"
