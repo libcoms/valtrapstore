@@ -6,7 +6,7 @@ const ProductSchema = z.object({
   name: z.string().min(1).max(200),
   description: z.string().optional(),
   category: z.enum(["valtrap", "ushki"]),
-  valtrapType: z.enum(["konkur", "vyezdka", "universalny", "pony"]).optional(),
+  valtrapType: z.enum(["konkur", "vyezdka", "universalny", "pony"]).nullish(),
   price: z.number().positive(),
   images: z.array(z.string()).default([]),
   colors: z.array(z.string()).default([]),

@@ -207,9 +207,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             <span className="text-base font-bold text-stone-900 transition-colors duration-200 md:group-hover:text-amber-700">
               {formatPrice(product.price)}
             </span>
-            <span className="text-xs text-stone-400">
-              {product.manufacturer && `от ${product.manufacturer}`}
-            </span>
+            <span className="text-xs text-green-600 font-medium">Отправим завтра</span>
           </div>
         </div>
       </div>
