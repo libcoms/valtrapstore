@@ -22,12 +22,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "daily",
       priority: 1,
     },
-    {
-      url: `${BASE_URL}/cart`,
-      lastModified: new Date(),
-      changeFrequency: "never",
-      priority: 0.1,
-    },
     ...productUrls,
   ];
 }
