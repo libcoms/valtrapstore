@@ -1,36 +1,87 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ВальтрапРу — магазин вальтрапов и ушек
 
-## Getting Started
+Интернет-магазин конного снаряжения ручной работы. Вальтрапы и ушки для лошадей: конкур, выездка, универсальные модели.
 
-First, run the development server:
+## Стек
+
+- **Next.js 16** (App Router)
+- **Prisma 7** + PostgreSQL (Prisma Accelerate)
+- **Tailwind CSS 4**
+- **Zustand** — корзина (localStorage)
+- **NextAuth v4** — авторизация в админке
+- **Cloudinary** — хранение изображений
+- **Telegram Bot API** — уведомления о заказах
+
+## Запуск
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Открыть [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Переменные окружения
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Создай `.env` на основе примера:
 
-## Learn More
+```env
+DATABASE_URL="prisma+postgres://..."
 
-To learn more about Next.js, take a look at the following resources:
+NEXTAUTH_SECRET="случайная-строка"
+NEXTAUTH_URL="http://localhost:3000"
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+TELEGRAM_BOT_TOKEN="токен-от-BotFather"
+TELEGRAM_CHAT_ID="твой-chat-id"
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+CLOUDINARY_CLOUD_NAME="..."
+CLOUDINARY_API_KEY="..."
+CLOUDINARY_API_SECRET="..."
 
-## Deploy on Vercel
+NEXT_PUBLIC_SITE_URL="https://твой-домен.vercel.app"
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## База данных
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+# Применить схему
+npm run db:push
+
+# Создать первого администратора
+npm run admin:create admin ваш_пароль
+
+# Заполнить тестовыми товарами
+npm run db:seed
+
+# Открыть Prisma Studio
+npm run db:studio
+```
+
+## Структура
+
+```
+app/
+  (shop)/          — публичный сайт (каталог, товар, корзина, оформление)
+  admin/
+    (protected)/   — панель управления (товары, заказы, баннеры, пользователи)
+    login/         — страница входа
+  api/             — API маршруты
+components/
+  admin/           — компоненты панели управления
+  catalog/         — карточки товаров, опции
+  layout/          — Header
+  ui/              — баннер-слайдер и прочее
+prisma/
+  schema.prisma    — модели БД
+  create-admin.ts  — скрипт создания администратора
+lib/
+  auth.ts          — конфигурация NextAuth
+  prisma.ts        — клиент Prisma
+  telegram.ts      — отправка уведомлений
+```
+
+## Админка
+
+Доступна по адресу `/admin`. Требует авторизации.
+
+Функционал: товары, заказы, баннеры главной страницы, управление пользователями.

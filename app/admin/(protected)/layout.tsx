@@ -1,14 +1,20 @@
 import Link from "next/link";
-import { LayoutDashboard, Package, ShoppingCart, Image } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingCart, Image, Users, UserCircle } from "lucide-react";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import LogoutButton from "@/components/admin/LogoutButton";
 
 const navItems = [
   { href: "/admin", label: "Дашборд", icon: LayoutDashboard },
   { href: "/admin/products", label: "Товары", icon: Package },
   { href: "/admin/orders", label: "Заказы", icon: ShoppingCart },
   { href: "/admin/banners", label: "Баннеры", icon: Image },
+  { href: "/admin/users", label: "Пользователи", icon: Users },
 ];
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+  const session = await getServerSession(authOptions);
+
   return (
     <div className="min-h-screen bg-stone-50">
       <div className="flex">
@@ -33,8 +39,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             ))}
           </nav>
 
-          <div className="p-4 border-t border-stone-100">
-            <Link href="/" className="text-xs text-stone-400 hover:text-stone-600 transition-colors">
+          <div className="p-3 border-t border-stone-100 space-y-0.5">
+            <Link
+              href="/admin/account"
+              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-stone-500 hover:bg-stone-50 hover:text-stone-900 transition-all"
+            >
+              <UserCircle className="w-4 h-4" />
+              {session?.user?.name ?? "Аккаунт"}
+            </Link>
+            <LogoutButton />
+            <Link href="/" className="block text-xs text-stone-400 hover:text-stone-600 transition-colors px-3 py-1">
               ← На сайт
             </Link>
           </div>

@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Nunito } from "next/font/google";
 import "./globals.css";
-import Header from "@/components/layout/Header";
 import { Toaster } from "react-hot-toast";
 
 const nunito = Nunito({
@@ -10,10 +9,25 @@ const nunito = Nunito({
   display: "swap",
 });
 
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://valtrapru.store";
+
 export const metadata: Metadata = {
-  title: "Valtrapru.store — Вальтрапы и ушки для лошадей",
+  title: {
+    default: "ВальтрапРу — магазин вальтрапов и ушек",
+    template: "%s — ВальтрапРу",
+  },
   description:
-    "Valtrapru.store — вальтрапы и ушки для лошадей ручной работы. Конкур, выездка, универсальные и пони.",
+    "Вальтрапы и ушки для лошадей ручной работы. Конкур, выездка, универсальные модели. Доставка по России через Яндекс Маркет.",
+  metadataBase: new URL(BASE_URL),
+  openGraph: {
+    siteName: "ВальтрапРу",
+    locale: "ru_RU",
+    type: "website",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({
@@ -24,8 +38,7 @@ export default function RootLayout({
   return (
     <html lang="ru" className={`${nunito.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col bg-white text-stone-900">
-        <Header />
-        <main className="flex-1 page-enter">{children}</main>
+        {children}
         <Toaster
           position="bottom-right"
           toastOptions={{

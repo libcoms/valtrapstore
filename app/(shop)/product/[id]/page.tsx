@@ -13,11 +13,32 @@ interface PageProps {
   params: Promise<{ id: string }>;
 }
 
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://valtrapru.store";
+
 export async function generateMetadata({ params }: PageProps) {
   const { id } = await params;
   const product = await prisma.product.findUnique({ where: { id } });
   if (!product) return {};
-  return { title: `${product.name} — Valtrapru.store` };
+
+  const title = `${product.name} — ВальтрапРу`;
+  const description = product.description
+    ? product.description.slice(0, 160)
+    : `Купить ${product.name} с доставкой через Яндекс Маркет. Ручная работа.`;
+  const image = product.images[0];
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      url: `${BASE_URL}/product/${id}`,
+      siteName: "ВальтрапРу",
+      ...(image ? { images: [{ url: image, width: 800, height: 800, alt: product.name }] } : {}),
+      locale: "ru_RU",
+      type: "website",
+    },
+  };
 }
 
 export default async function ProductPage({ params }: PageProps) {
